@@ -1,0 +1,17 @@
+[package]
+name = "drop-sim"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"] # Essential: tells rustc to output .wasm
+
+[dependencies]
+wasm-bindgen = "0.2"
+
+# Random number generation
+# 'smallrng' is faster/smaller than the default crypto-secure rng
+rand = { version = "0.8", features = ["small_rng"] }
+
+# Essential for 'rand' to work in a browser environment
+getrandom = { version = "0.2", features = ["js"] }
