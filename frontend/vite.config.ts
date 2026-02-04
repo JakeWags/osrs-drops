@@ -7,7 +7,19 @@ export default defineConfig({
   plugins: [
     react(),
     wasm(),
-    topLevelAwait()
+    topLevelAwait(),
+    // Custom plugin to load .wgsl files as strings
+    {
+      name: "wgsl-loader",
+      transform(code, id) {
+        if (id.endsWith(".wgsl")) {
+          return {
+            code: `export default ${JSON.stringify(code)};`,
+            map: null,
+          };
+        }
+      },
+    },
   ],
   optimizeDeps: {
     include: ['react-vega', 'vega', 'vega-lite'],

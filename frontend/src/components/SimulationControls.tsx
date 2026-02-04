@@ -1,4 +1,4 @@
-import { Card, SegmentedControl, Stack, Group, NumberInput, Button, Text, Divider, Title, LoadingOverlay } from '@mantine/core';
+import { Card, SegmentedControl, Stack, Group, NumberInput, Button, Text, Divider, Title, LoadingOverlay, Switch, Tooltip, Badge, Accordion, Select } from '@mantine/core';
 
 type SimulationMode = 'until-drop' | 'fixed-kills';
 
@@ -15,6 +15,11 @@ interface SimulationControlsProps {
   setKillsPerPlayer: (value: number) => void;
   loading: boolean;
   onRunSimulation: () => void;
+  useGPU: boolean;
+  setUseGPU: (value: boolean) => void;
+  // New Prop
+  bitDepth: string;
+  setBitDepth: (value: string) => void;
 }
 
 export function SimulationControls({
@@ -30,15 +35,17 @@ export function SimulationControls({
   setKillsPerPlayer,
   loading,
   onRunSimulation,
+  useGPU,
+  setUseGPU,
+  bitDepth,
+  setBitDepth
 }: SimulationControlsProps) {
   return (
     <Card shadow="sm" p="lg" radius="md" withBorder style={{ height: '100%', position: 'relative' }}>
-      <LoadingOverlay 
-        visible={loading} 
-        overlayProps={{ blur: 1 }} // Correct way to add blur in v7
-      />
+      <LoadingOverlay visible={loading} overlayProps={{ blur: 1 }} />
       
       <Stack spacing="lg">
+        {/* ... Mode Selection (Existing) ... */}
         <div>
           <Title order={4} mb="md">Configuration</Title>
           <Text size="sm" weight={500} mb={5}>Simulation Mode</Text>
@@ -52,36 +59,20 @@ export function SimulationControls({
             fullWidth
             mb="xs"
           />
-          <Text size="xs" color="dimmed">
-            {mode === 'fixed-kills' 
-              ? 'Simulate a group of players doing a set number of kills.' 
-              : 'Simulate how long it takes to get a specific drop.'}
-          </Text>
         </div>
 
         <Divider />
 
+        {/* ... Drop Rate (Existing) ... */}
         <div>
           <Text size="sm" weight={500} mb="xs">Drop Rate Chance</Text>
           <Group grow align="flex-start">
-            <NumberInput
-              label="Numerator"
-              value={numerator}
-              onChange={setNumerator}
-              min={1}
-            />
-            <NumberInput
-              label="Denominator"
-              value={denominator}
-              onChange={setDenominator}
-              min={1}
-            />
+            <NumberInput label="Numerator" value={numerator} onChange={setNumerator} min={1} />
+            <NumberInput label="Denominator" value={denominator} onChange={setDenominator} min={1} />
           </Group>
-          <Text size="xs" color="dimmed" mt={5} align="right">
-            Probability: {((numerator / denominator) * 100).toFixed(4)}%
-          </Text>
         </div>
 
+        {/* ... Parameters (Existing) ... */}
         <div>
           <Text size="sm" weight={500} mb="xs">Parameters</Text>
           <Stack spacing="xs">
@@ -90,10 +81,8 @@ export function SimulationControls({
               value={iterations}
               onChange={setIterations}
               min={1000}
-              step={10000}
               thousandSeparator=","
             />
-            
             {mode === 'fixed-kills' && (
               <NumberInput
                 label="Kills per Player"
@@ -105,14 +94,50 @@ export function SimulationControls({
           </Stack>
         </div>
 
+        {/* ... Advanced Options (NEW) ... */}
+        <Accordion variant="contained" radius="md" chevronPosition="left">
+            <Accordion.Item value="advanced">
+                <Accordion.Control>
+                    <Text size="sm" weight={500}>Advanced Performance</Text>
+                </Accordion.Control>
+                <Accordion.Panel>
+                    <Stack spacing="xs">
+                        <Text size="xs" color="dimmed">
+                            Adjust memory packing to increase max simulation count.
+                        </Text>
+                        <Select
+                            label="Bit Packing Strategy"
+                            description="Lower bits = Faster, but lower max drops per player."
+                            value={bitDepth}
+                            onChange={(val) => setBitDepth(val || '8')}
+                            data={[
+                                { value: '4', label: '4-Bit (Max 15 Drops) - Ultra Fast' },
+                                { value: '8', label: '8-Bit (Max 255 Drops) - Standard' },
+                                { value: '32', label: '32-Bit (No Limit) - Slow' },
+                            ]}
+                            disabled={!useGPU || mode !== 'fixed-kills'}
+                        />
+                         <Switch 
+                            label="Enable GPU Acceleration" 
+                            checked={useGPU}
+                            onChange={(event) => setUseGPU(event.currentTarget.checked)}
+                            disabled={mode === 'until-drop'} 
+                            mt="sm"
+                        />
+                    </Stack>
+                </Accordion.Panel>
+            </Accordion.Item>
+        </Accordion>
+
         <Button 
           onClick={onRunSimulation} 
           loading={loading} 
           fullWidth 
           size="md"
-          mt="md"
+          variant={useGPU ? "gradient" : "filled"}
+          gradient={{ from: 'orange', to: 'red' }}
         >
-          Run Simulation
+          {useGPU ? 'Run on GPU' : 'Run Simulation'}
         </Button>
       </Stack>
     </Card>

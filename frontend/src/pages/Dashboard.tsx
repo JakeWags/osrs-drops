@@ -4,6 +4,7 @@ import { SimulationControls } from '../components/SimulationControls';
 import { ResultsDisplay } from '../components/ResultsDisplay';
 import { HistogramDisplay } from '../components/HistogramDisplay';
 import SimWorker from '../sim.worker?worker'; 
+import { runWebGPUSimulation } from '../webgpu-sim';
 
 type SimulationMode = 'until-drop' | 'fixed-kills';
 
@@ -16,6 +17,9 @@ export function Dashboard() {
   const [simData, setSimData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
+  
+  const [useGPU, setUseGPU] = useState(false);
+  const [bitDepth, setBitDepth] = useState<string>('8'); // Default 8-bit
 
   const workerRef = useRef<Worker | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -23,34 +27,63 @@ export function Dashboard() {
   useEffect(() => {
     workerRef.current = new SimWorker();
     workerRef.current.onmessage = (e) => {
-      const { type, data } = e.data;
+      const { type, data, error } = e.data;
       if (type === 'SUCCESS') {
         setExecutionTime(performance.now() - startTimeRef.current);
         setSimData(data);
         setLoading(false);
+      } else if (type === 'ERROR') {
+        console.error(error);
+        setLoading(false);
+        alert('Simulation Error');
       }
     };
     return () => workerRef.current?.terminate();
   }, []);
 
-  const runSimulation = () => {
+  const runSimulation = async () => {
     setLoading(true);
     setExecutionTime(null);
+    setSimData(null);
     startTimeRef.current = performance.now();
-    workerRef.current?.postMessage({
-      mode,
-      numerator,
-      denominator,
-      iterations,
-      killsPerPlayer
-    });
+
+    if (useGPU && mode === 'fixed-kills') {
+      try {
+        const result = await runWebGPUSimulation(
+          numerator, 
+          denominator, 
+          killsPerPlayer, 
+          iterations,
+          parseInt(bitDepth) // Pass the selected bit depth
+        );
+        
+        setExecutionTime(performance.now() - startTimeRef.current);
+        setSimData(result);
+        setLoading(false);
+      } catch (err: any) {
+        console.error(err);
+        alert(`GPU Error: ${err.message}. Falling back to CPU.`);
+        setUseGPU(false); 
+        setLoading(false); 
+      }
+    } else {
+      workerRef.current?.postMessage({
+        mode,
+        numerator,
+        denominator,
+        iterations,
+        killsPerPlayer
+      });
+    }
   };
 
   return (
     <Box>
       <Box mb="xl">
         <Title order={2}>RuneScape Drop Simulator</Title>
-        <Text c="dimmed">Monte Carlo simulation engine (Rust/Wasm)</Text>
+        <Text c="dimmed">
+          High-performance Monte Carlo simulation engine (Rust/Wasm & WebGPU)
+        </Text>
       </Box>
 
       <Grid gutter="md">
@@ -68,6 +101,10 @@ export function Dashboard() {
             setKillsPerPlayer={setKillsPerPlayer}
             loading={loading}
             onRunSimulation={runSimulation}
+            useGPU={useGPU}
+            setUseGPU={setUseGPU}
+            bitDepth={bitDepth}
+            setBitDepth={setBitDepth}
           />
         </Grid.Col>
 

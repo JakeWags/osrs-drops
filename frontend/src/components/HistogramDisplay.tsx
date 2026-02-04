@@ -11,7 +11,11 @@ interface HistogramDisplayProps {
 export function HistogramDisplay({ simData, mode }: HistogramDisplayProps) {
   const theme = useMantineTheme();
 
-  if (!simData) return null;
+  // SAFETY CHECK: Ensure simData exists AND histogram is a valid array.
+  // This prevents crashes if the Worker returns stale data without the histogram.
+  if (!simData || !simData.histogram || !Array.isArray(simData.histogram)) {
+    return null;
+  }
 
   // 1. Calculate Probability for Y-axis (Count / Total)
   const total = simData.totalCount || 1; // Prevent division by zero
@@ -23,7 +27,6 @@ export function HistogramDisplay({ simData, mode }: HistogramDisplayProps) {
     .filter((d: any) => d.y > 0);
 
   // 2. Dynamic Config based on Mode
-  // 'ordinal' type for drops removes 0.5 ticks and makes bars wider automatically
   const xType = mode === 'fixed-kills' ? 'ordinal' : 'quantitative';
   const xTitle = mode === 'until-drop' ? "Kill Count" : "Drops Received";
 
@@ -46,20 +49,20 @@ export function HistogramDisplay({ simData, mode }: HistogramDisplayProps) {
     encoding: {
       x: { 
         field: "x", 
-        type: xType as any, // 'ordinal' or 'quantitative'
+        type: xType as any,
         title: xTitle,
         scale: { padding: 0.01 },
         axis: { 
           grid: false,
-          labelAngle: 0, // Keep labels flat for ordinal (drops)
+          labelAngle: 0, 
         }
       },
       y: { 
         field: "y", 
         type: "quantitative" as const, 
-        title: "Probability", // Changed from "Frequency"
+        title: "Probability",
         axis: { 
-          format: ".1%" // Shows 0.5 as "50.0%"
+          format: ".1%" 
         } 
       }
     }

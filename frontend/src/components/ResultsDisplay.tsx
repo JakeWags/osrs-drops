@@ -1,4 +1,4 @@
-import { Card, Text, Group, Stack, SimpleGrid, Paper, RingProgress, Center, Title } from '@mantine/core';
+import { Card, Text, Group, Stack, SimpleGrid, Paper, Center, Title, Loader } from '@mantine/core';
 
 type SimulationMode = 'until-drop' | 'fixed-kills';
 
@@ -9,7 +9,10 @@ interface ResultsDisplayProps {
 }
 
 export function ResultsDisplay({ simData, mode, executionTime }: ResultsDisplayProps) {
-  if (!simData) {
+  // Safe check: Ensure simData exists AND has the required properties
+  const hasData = simData && typeof simData.min !== 'undefined';
+
+  if (!hasData) {
     return (
       <Card shadow="sm" p="xl" radius="md" withBorder h="100%">
         <Center h="100%">
@@ -50,7 +53,7 @@ export function ResultsDisplay({ simData, mode, executionTime }: ResultsDisplayP
             Average {label}
           </Text>
           <Text size="xl" weight={700} color="blue">
-            {simData.avg.toFixed(2)}
+            {simData.avg?.toFixed(2) || "0.00"}
           </Text>
         </Paper>
 
@@ -59,7 +62,7 @@ export function ResultsDisplay({ simData, mode, executionTime }: ResultsDisplayP
             Maximum {label}
           </Text>
           <Text size="xl" weight={700}>
-            {simData.max.toLocaleString()}
+            {simData.max?.toLocaleString() || "0"}
           </Text>
         </Paper>
       </SimpleGrid>
@@ -68,9 +71,8 @@ export function ResultsDisplay({ simData, mode, executionTime }: ResultsDisplayP
         <Group position="apart">
             <div>
                 <Text size="xs" color="dimmed" tt="uppercase" weight={700}>Total Samples</Text>
-                <Text weight={600}>{simData.totalCount.toLocaleString()}</Text>
+                <Text weight={600}>{simData.totalCount?.toLocaleString() || "0"}</Text>
             </div>
-            {/* We can add variance or standard deviation here later */}
         </Group>
       </Paper>
     </Card>
