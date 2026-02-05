@@ -17,7 +17,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 250,
+        width: 2500,
         breakpoint: 'sm',
         // Collapsed by default on desktop AND mobile until toggled
         collapsed: { mobile: !opened, desktop: !opened },
