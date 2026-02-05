@@ -38,34 +38,41 @@ export function HistogramDisplay({ simData, mode }: HistogramDisplayProps) {
     data: { 
       values: chartData 
     },
-    mark: { 
-      type: "area" as const, 
-      line: { color: theme.colors.blue[7], interpolate: "monotone" }, 
-      color: theme.colors.blue[2], 
-      opacity: 0.6, 
-      tooltip: true,
-      interpolate: "monotone"
-    },
-    encoding: {
-      x: { 
-        field: "x", 
-        type: xType as any,
-        title: xTitle,
-        scale: { padding: 0.01 },
-        axis: { 
-          grid: false,
-          labelAngle: 0, 
+    layer: [
+      {
+        mark: { 
+          type: "area" as const, 
+          line: { color: theme.colors.blue[7], interpolate: "monotone" }, 
+          color: theme.colors.blue[2], 
+          opacity: 0.3, 
+          interpolate: "monotone"
+        },
+        encoding: {
+          x: { 
+            field: "x", 
+            type: xType as any,
+            title: xTitle,
+            scale: { padding: 0.01 },
+            axis: { 
+              grid: false,
+              labelAngle: 0, 
+            }
+          },
+          y: { 
+            field: "y", 
+            type: "quantitative" as const, 
+            title: "Probability",
+            axis: { 
+              format: ".1%"
+            } 
+          },
+          tooltip: [
+            { field: "x", type: xType as any, title: xTitle },
+            { field: "y", type: "quantitative" as const, title: "Probability", format: ".4%" }
+          ]
         }
-      },
-      y: { 
-        field: "y", 
-        type: "quantitative" as const, 
-        title: "Probability",
-        axis: { 
-          format: ".1%" 
-        } 
       }
-    }
+    ]
   };
 
   return (
