@@ -122,14 +122,14 @@ export function Dashboard() {
         <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
           {loading && progress && (
             <Box mb="md">
-              <Text size="sm" weight={500} mb="xs">
+              <Text size="sm" fw={500} mb="xs">
                 Processing: {progress.completed.toLocaleString()} / {progress.total.toLocaleString()} simulations
               </Text>
               <Progress 
                 value={progress.percentComplete} 
                 size="lg" 
                 radius="md"
-                animate
+                animated
               />
               <Text size="xs" c="dimmed" mt="xs">
                 {progress.percentComplete.toFixed(1)}% complete • 
@@ -141,7 +141,8 @@ export function Dashboard() {
           <ResultsDisplay 
             simData={simData} 
             mode={mode} 
-            executionTime={executionTime} 
+            executionTime={executionTime}
+            killsPerPlayer={mode === 'fixed-kills' ? killsPerPlayer : undefined}
           />
           <HistogramDisplay 
             simData={simData} 

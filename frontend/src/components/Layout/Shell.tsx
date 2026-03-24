@@ -1,6 +1,6 @@
-import { AppShell, Burger, Group, Title, UnstyledButton, Text, Box, rem, useMantineTheme } from "@mantine/core";
+import { AppShell, Burger, Group, Title, UnstyledButton, Text, useMantineTheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const navLinks = [
   { label: 'Dashboard', active: true },

@@ -43,10 +43,10 @@ export function SimulationControls({
     <Card shadow="sm" p="lg" radius="md" withBorder style={{ height: '100%', position: 'relative' }}>
       <LoadingOverlay visible={loading} overlayProps={{ blur: 1 }} />
       
-      <Stack spacing="lg">
+      <Stack gap="lg">
         <div>
           <Title order={4} mb="md">Configuration</Title>
-          <Text size="sm" weight={500} mb={5}>Simulation Mode</Text>
+          <Text size="sm" fw={500} mb={5}>Simulation Mode</Text>
           <SegmentedControl
             value={mode}
             onChange={(value) => setMode(value as SimulationMode)}
@@ -62,20 +62,20 @@ export function SimulationControls({
         <Divider />
 
         <div>
-          <Text size="sm" weight={500} mb="xs">Drop Rate Chance</Text>
+          <Text size="sm" fw={500} mb="xs">Drop Rate Chance</Text>
           <Group grow align="flex-start">
-            <NumberInput label="Numerator" value={numerator} onChange={setNumerator} min={1} />
-            <NumberInput label="Denominator" value={denominator} onChange={setDenominator} min={1} />
+            <NumberInput label="Numerator" value={numerator} onChange={(value) => setNumerator(typeof value === 'string' ? parseInt(value) : value)} min={1} />
+            <NumberInput label="Denominator" value={denominator} onChange={(value) => setDenominator(typeof value === 'string' ? parseInt(value) : value)} min={1} />
           </Group>
         </div>
 
         <div>
-          <Text size="sm" weight={500} mb="xs">Parameters</Text>
-          <Stack spacing="xs">
+          <Text size="sm" fw={500} mb="xs">Parameters</Text>
+          <Stack gap="xs">
             <NumberInput
               label={mode === 'fixed-kills' ? 'Number of Players' : 'Total Simulations'}
               value={iterations}
-              onChange={setIterations}
+              onChange={(value) => setIterations(typeof value === 'string' ? parseInt(value) : value)}
               min={1000}
               thousandSeparator=","
             />
@@ -83,7 +83,7 @@ export function SimulationControls({
               <NumberInput
                 label="Kills per Player"
                 value={killsPerPlayer}
-                onChange={setKillsPerPlayer}
+                onChange={(value) => setKillsPerPlayer(typeof value === 'string' ? parseInt(value) : value)}
                 min={1}
               />
             )}
@@ -93,10 +93,10 @@ export function SimulationControls({
         <Accordion variant="contained" radius="md" chevronPosition="left">
             <Accordion.Item value="advanced">
                 <Accordion.Control>
-                    <Text size="sm" weight={500}>Advanced Performance</Text>
+                    <Text size="sm" fw={500}>Advanced Performance</Text>
                 </Accordion.Control>
                 <Accordion.Panel>
-                    <Stack spacing="xs">
+                    <Stack gap="xs">
                         <Switch 
                             label="Enable GPU Acceleration" 
                             checked={useGPU}
