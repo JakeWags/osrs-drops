@@ -3,7 +3,7 @@ type SimParams = {
     mode: 'until-drop' | 'fixed-kills';
     numerator: number;
     denominator: number;
-    iterations: number;
+    partialIterations: number;
     killsPerPlayer: number;
 };
 
@@ -13,7 +13,7 @@ import init, { simulate_drops_until_success, simulate_fixed_kills } from "drop-s
 let initialized = false;
 
 self.onmessage = async (e: MessageEvent<SimParams>) => {
-    const { mode, numerator, denominator, iterations, killsPerPlayer } = e.data;
+    const { mode, numerator, denominator, partialIterations, killsPerPlayer } = e.data;
 
     // Initialize the Wasm module memory (only once)
     if (!initialized) {
@@ -26,10 +26,10 @@ self.onmessage = async (e: MessageEvent<SimParams>) => {
         
         if (mode === 'fixed-kills') {
             // Scenario 2: Fixed kills per player
-            result = simulate_fixed_kills(numerator, denominator, iterations, killsPerPlayer);
+            result = simulate_fixed_kills(numerator, denominator, partialIterations, killsPerPlayer);
         } else {
             // Scenario 1: Simulate until drop
-            result = simulate_drops_until_success(numerator, denominator, iterations);
+            result = simulate_drops_until_success(numerator, denominator, partialIterations);
         }
 
         // Extract data from result object

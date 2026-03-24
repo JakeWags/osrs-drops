@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Grid, Title, Text, Box, Progress } from '@mantine/core';
 import { SimulationControls } from '../components/SimulationControls';
 import { ResultsDisplay } from '../components/ResultsDisplay';
 import { HistogramDisplay } from '../components/HistogramDisplay';
-import SimWorker from '../sim.worker?worker'; 
 import { runWebGPUSimulation, type SimulationProgress } from '../webgpu-sim';
 
 type SimulationMode = 'until-drop' | 'fixed-kills';
@@ -25,27 +24,48 @@ export function Dashboard() {
   // Progress State
   const [progress, setProgress] = useState<SimulationProgress | null>(null);
 
-  const workerRef = useRef<Worker | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  useEffect(() => {
-    workerRef.current = new SimWorker();
-    workerRef.current.onmessage = (e) => {
-      const { type, data, error } = e.data;
-      if (type === 'SUCCESS') {
-        setExecutionTime(performance.now() - startTimeRef.current);
-        setSimData(data);
-        setLoading(false);
-        setProgress(null);
-      } else if (type === 'ERROR') {
-        console.error(error);
-        setLoading(false);
-        setProgress(null);
-        alert('Simulation Error');
+  const numWorkers = 4;  // Number of Web Workers for parallelization
+
+  // Function to aggregate results from multiple workers
+  const aggregateResults = (results: any[]) => {
+    if (results.length === 0) return { simData: null };
+
+    let totalMin = Infinity;
+    let totalMax = -Infinity;
+    let totalSum = 0;
+    let totalCount = 0;
+    const maxHistogramLength = Math.max(...results.map(r => r.data.histogram?.length || 0));
+    const aggregatedHistogram = new Array(maxHistogramLength).fill(0);
+
+    results.forEach(({ data }) => {
+      totalMin = Math.min(totalMin, data.min);
+      totalMax = Math.max(totalMax, data.max);
+      totalSum += data.avg * data.totalCount;  // Weighted sum for average
+      totalCount += data.totalCount;
+
+      if (data.histogram) {
+        data.histogram.forEach((count: number, index: number) => {
+          if (index < aggregatedHistogram.length) {
+            aggregatedHistogram[index] += count;
+          }
+        });
       }
+    });
+
+    const aggregatedAvg = totalCount > 0 ? totalSum / totalCount : 0;
+
+    return {
+      simData: {
+        min: totalMin,
+        max: totalMax,
+        avg: aggregatedAvg,
+        totalCount,
+        histogram: aggregatedHistogram,
+      },
     };
-    return () => workerRef.current?.terminate();
-  }, []);
+  };
 
   const runSimulation = async () => {
     setLoading(true);
@@ -78,13 +98,52 @@ export function Dashboard() {
         setProgress(null);
       }
     } else {
-      workerRef.current?.postMessage({
-        mode,
-        numerator,
-        denominator,
-        iterations,
-        killsPerPlayer
-      });
+      // CPU simulation with multiple workers
+      const partialIterations = Math.floor(iterations / numWorkers);
+      const workers = [];
+      const promises = [];
+
+      for (let i = 0; i < numWorkers; i++) {
+        const worker = new Worker(new URL('../sim.worker.ts', import.meta.url), { type: 'module' });
+        workers.push(worker);
+
+        const promise = new Promise<any>((resolve, reject) => {
+          worker.onmessage = (e) => {
+            const { type, data, error } = e.data;
+            if (type === 'SUCCESS') {
+              resolve({ data });
+            } else if (type === 'ERROR') {
+              reject(error);
+            }
+            worker.terminate();  // Clean up worker
+          };
+          worker.onerror = reject;
+        });
+
+        worker.postMessage({
+          mode,
+          numerator,
+          denominator,
+          partialIterations,
+          killsPerPlayer
+        });
+
+        promises.push(promise);
+      }
+
+      try {
+        const results = await Promise.all(promises);
+        const aggregated = aggregateResults(results);
+        setSimData(aggregated.simData);
+        setExecutionTime(performance.now() - startTimeRef.current);
+      } catch (error) {
+        console.error('Simulation error:', error);
+        alert('Simulation Error');
+      } finally {
+        setLoading(false);
+        // Ensure all workers are terminated
+        workers.forEach(w => w.terminate());
+      }
     }
   };
 

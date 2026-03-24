@@ -18,8 +18,8 @@ export function ResultsDisplay({ simData, mode, executionTime, killsPerPlayer }:
       <Card shadow="sm" p="xl" radius="md" withBorder h="100%">
         <Center h="100%">
           <Stack align="center" gap="xs">
-            <Text color="dimmed" size="lg">No simulation data</Text>
-            <Text color="dimmed" size="sm">Run a simulation to view statistics</Text>
+            <Text c="dimmed" size="lg">No simulation data</Text>
+            <Text c="dimmed" size="sm">Run a simulation to view statistics</Text>
           </Stack>
         </Center>
       </Card>
@@ -43,7 +43,7 @@ export function ResultsDisplay({ simData, mode, executionTime, killsPerPlayer }:
       <Group justify="space-between" mb="md">
         <Title order={4}>Results Summary</Title>
         {executionTime && (
-          <Text size="xs" color="dimmed">
+          <Text size="xs" c="dimmed">
             Computed in {(executionTime / 1000).toFixed(3)}s
           </Text>
         )}
@@ -51,7 +51,7 @@ export function ResultsDisplay({ simData, mode, executionTime, killsPerPlayer }:
 
       <SimpleGrid cols={{ base: 1, sm: 3 }}>
         <Paper withBorder p="md" radius="md">
-          <Text size="xs" color="dimmed" tt="uppercase" fw={700}>
+          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
             Minimum {label}
           </Text>
           <Text size="xl" fw={700}>
@@ -60,16 +60,16 @@ export function ResultsDisplay({ simData, mode, executionTime, killsPerPlayer }:
         </Paper>
 
         <Paper withBorder p="md" radius="md" style={{ borderColor: '#228be6' }}>
-          <Text size="xs" color="blue" tt="uppercase" fw={700}>
+          <Text size="xs" c="blue" tt="uppercase" fw={700}>
             Average {label}
           </Text>
-          <Text size="xl" fw={700} color="blue">
+          <Text size="xl" fw={700} c="blue">
             {simData.avg?.toFixed(2) || "0.00"}
           </Text>
         </Paper>
 
         <Paper withBorder p="md" radius="md">
-          <Text size="xs" color="dimmed" tt="uppercase" fw={700}>
+          <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
             Maximum {label}
           </Text>
           <Text size="xl" fw={700}>
@@ -81,7 +81,7 @@ export function ResultsDisplay({ simData, mode, executionTime, killsPerPlayer }:
       <Paper withBorder p="md" radius="md" mt="md" bg="gray.0">
         <Group justify="space-between">
             <div>
-                <Text size="xs" color="dimmed" tt="uppercase" fw={700}>Total Bernoulli Trials</Text>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Total Bernoulli Trials</Text>
                 <Text fw={600}>{totalTrials.toLocaleString()}</Text>
             </div>
         </Group>
